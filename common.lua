@@ -129,6 +129,126 @@ function table.ifInsert(tabl, value) --вставить в таблицу, ес�
   tabl[#tabl + 1] = value
 end
 
+function math.maxInTabl(tabl, key, start)
+  local start = start or 1
+  local max = start
+  for i=start+1,#tabl do
+    if tabl[max][key] < tabl[i][key] then
+      max = i
+    end
+  end
+  return max
+end
+
+function math.minInTabl(tabl, key, start)
+  local start = start or 1
+  local min = start
+  for i=start+1,#tabl do
+    if tabl[min][key] > tabl[i][key] then
+      max = i
+    end
+  end
+  return min
+end
+
+function table.exchange(tabl, k1, k2)
+  local temp = tabl[k1]
+  tabl[k1] = tabl[k2]
+  tabl[k2] = temp
+  return tabl
+end
+
+geometry = {
+  lineVSline = function(a, b, c, d)
+    return geometry.intersect(a.x, b.x, c.x, d.x)
+    		and geometry.intersect(a.y, b.y, c.y, d.y)
+    		and geometry.area(a,b,c) * geometry.area(a,b,d) <= 0
+    		and geometry.area(c,d,a) * geometry.area(c,d,b) <= 0;
+  end,
+  intersect = function(a, b, c, d)
+    if (a > b) then
+      local temp = a
+      a = b
+      b = temp
+    end
+    if (c > d) then
+      local temp = c
+      c = d
+      d = temp
+    end
+    return math.max(a, c) <= math.min(b, d);
+  end,
+  area = function(a, b, c)
+    return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+  end,
+  pointsInFigure = function(points)
+    --функция находит середину по Y точек и сортирует по X сначало верхнюю сторону, в после сортирует по x на убывание нижнюю, таким образом образуя контур
+    --local points = {...}
+    local figure = {}
+
+    local minY = 1
+    for i=2,#points,2 do
+      if points[minY] > points[i] then
+        minY = i
+      end
+    end
+    local maxY = 1
+    for i=2,#points,2 do
+      if points[maxY] < points[i] then
+        maxY = i
+      end
+    end
+    local centerY = (points[minY]+points[maxY])/2
+    local tempUP = {}
+    local tempDOWN = {}
+    for i=2,#points,2 do
+      if points[i] <= centerY then
+        table.insert(tempUP, i-1)
+      else
+        table.insert(tempDOWN, i-1)
+      end
+    end
+
+    while #tempUP > 1 do
+      local min = 1
+      for i=1,#tempUP do
+        if points[tempUP[min]] > points[tempUP[i]] then
+          min = i
+        elseif points[tempUP[min]] == points[tempUP[i]] then
+          if points[tempUP[min]+1] > points[tempUP[i]+1] then
+            min = i
+          end
+        end
+      end
+      table.insert(figure, tempUP[min])
+      table.remove(tempUP, min)
+    end
+    table.insert(figure, tempUP[1])
+
+    while #tempDOWN > 1 do
+      local max = 1
+      for i=1,#tempDOWN do
+        if points[tempDOWN[max]] < points[tempDOWN[i]] then
+          max = i
+        elseif points[tempDOWN[max]] == points[tempDOWN[i]] then
+          if points[tempDOWN[max]+1] < points[tempDOWN[i]+1] then
+            max = i
+          end
+        end
+      end
+      table.insert(figure, tempDOWN[max])
+      table.remove(tempDOWN, max)
+    end
+    table.insert(figure, tempDOWN[1])
+
+    local finalPoints = {}
+    for i=1,#figure do
+      finalPoints[i*2-1] = points[figure[i]]
+      finalPoints[i*2] = points[figure[i]+1]
+    end
+    return finalPoints
+  end,
+}
 
 -- for k,v in pairs(self.points) do
 --   local found = false
